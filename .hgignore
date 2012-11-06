@@ -1,3 +1,6 @@
 syntax: glob
 *.exe
 *.orig
+
+syntax: regexp
+Example\/TestProject$
