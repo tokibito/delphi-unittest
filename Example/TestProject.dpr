@@ -9,5 +9,5 @@ uses
   ;
 
 begin
-  Nullpobug.UnitTest.RunTest;
+  Nullpobug.UnitTest.runTest;
 end.
