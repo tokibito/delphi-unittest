@@ -67,11 +67,11 @@ var
 implementation
 
 { TestCase }
-procedure TTestCase.setUp;
+procedure TTestCase.SetUp;
 begin
 end;
 
-procedure TTestCase.tearDown;
+procedure TTestCase.TearDown;
 begin
 end;
 
