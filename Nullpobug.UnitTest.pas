@@ -4,6 +4,7 @@ interface
 
 uses
   System.SysUtils
+  , System.StrUtils
   , System.Generics.Collections
   , System.Rtti
   ;
@@ -13,8 +14,8 @@ type
 
   TTestCase = class(TObject)
   public
-    procedure SetUp;
-    procedure TearDown;
+    procedure SetUp; virtual;
+    procedure TearDown; virtual;
     procedure AssertTrue(Value: Boolean);
     procedure AssertFalse(Value: Boolean);
     procedure AssertEquals(Value1, Value2: Integer); overload;
@@ -46,7 +47,15 @@ type
     destructor Destroy; override;
     procedure AddTestCase(TestCaseClass: TTestCaseClass);
     function Run(TestCase: TTestCase): TTestResult;
-    procedure RunTests;
+    procedure RunTests; virtual;
+  end;
+
+  TTextTestRunner = class(TTestRunner)
+  public
+    procedure WriteHeader;
+    procedure WriteTestResult;
+    procedure WriteFooter;
+    procedure RunTests; override;
   end;
 
 procedure RunTest;
@@ -158,6 +167,27 @@ begin
   end;
 end;
 
+{ TTextTestRunner }
+procedure TTextTestRunner.WriteHeader;
+begin
+end;
+
+procedure TTextTestRunner.WriteTestResult;
+begin
+end;
+
+procedure TTextTestRunner.WriteFooter;
+begin
+  WriteLn(DupeString('-', 70));
+  WriteLn('OK');
+end;
+
+procedure TTextTestRunner.RunTests;
+begin
+  inherited RunTests;
+  WriteFooter;
+end;
+
 procedure RunTest;
 begin
   TestRunner.RunTests;
@@ -169,7 +199,7 @@ begin
 end;
 
 initialization
-  TestRunner := TTestRunner.Create;
+  TestRunner := TTextTestRunner.Create;
 
 finalization
   FreeAndNil(TestRunner);
