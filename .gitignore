@@ -1,0 +1,4 @@
+.hg/
+*.exe
+*.orig
+Example/TestProject
