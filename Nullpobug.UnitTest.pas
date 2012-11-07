@@ -3,7 +3,9 @@ unit Nullpobug.UnitTest;
 interface
 
 uses
-  System.SysUtils;
+  System.SysUtils
+  , System.Generics.Collections
+  ;
 
 type
   EAssertionError = class(Exception);
@@ -18,10 +20,38 @@ type
     procedure assertEquals(Value1, Value2: String); overload;
   end;
 
+  TTestCaseClass = class of TTestCase;
+
+  TTestResultType = (rtOK, rtFail, rtError, rtSkip);
+
+  TTestResult = class(TObject)
+  private
+    FResultType: TTestResultType;
+    FError: EAssertionError;
+  public
+    constructor Create(TestResultType: TTestResultType; Error: EAssertionError = nil);  // TODO: Error
+    destructor Destroy; override;
+    property ResultType: TTestResultType read FResultType;
+  end;
+
+  TTestRunner = class(TObject)
+  private
+    FTestCaseList: TObjectList<TTestCase>;
+    FTestResultList: TObjectList<TTestResult>;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddTestCase(TestCaseClass: TTestCaseClass);
+    procedure Run(TestCase: TTestCase);
+    procedure RunTests;
+  end;
+
 procedure runTest;
+procedure registerTest;
 
 implementation
 
+{ TestCase }
 procedure TTestCase.setUp;
 begin
 end;
@@ -54,7 +84,55 @@ begin
     raise EAssertionError.Create('"' + Value1 + '" != "' + Value2 + '"');
 end;
 
+{ TestResult }
+constructor TTestResult.Create(TestResultType: TTestResultType; Error: EAssertionError = nil);
+begin
+  FResultType := TestResultType;
+  FError := Error;
+end;
+
+destructor TTestResult.Destroy;
+begin
+  FError := nil;
+  inherited Destroy;
+end;
+
+{ TestRunner }
+constructor TTestRunner.Create;
+begin
+  FTestCaseList := TObjectList<TTestCase>.Create;
+  FTestResultList := TObjectList<TTestResult>.Create;
+end;
+
+destructor TTestRunner.Destroy;
+begin
+  FreeAndNil(FTestCaseList);
+  FreeAndNil(FTestResultList);
+  inherited Destroy;
+end;
+
+procedure TTestRunner.AddTestCase(TestCaseClass: TTestCaseClass);
+begin
+  FTestCaseList.Add(TestCaseClass.Create);
+end;
+
+procedure TTestRunner.Run(TestCase: TTestCase);
+begin
+end;
+
+procedure TTestRunner.RunTests;
+var
+  TestCase: TTestCase;
+begin
+  for TestCase in FTestCaseList do
+    Run(TestCase);
+end;
+
 procedure runTest;
+begin
+end;
+
+procedure registerTest;
 begin
 end;
 

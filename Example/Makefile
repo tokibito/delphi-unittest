@@ -1,2 +1,2 @@
 TestProject: TestProject.dpr
-	dcc32 TestProject.dpr
+	dcc32 -$M+ TestProject.dpr
