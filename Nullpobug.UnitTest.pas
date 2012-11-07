@@ -5,6 +5,7 @@ interface
 uses
   System.SysUtils
   , System.Generics.Collections
+  , System.Rtti
   ;
 
 type
@@ -12,12 +13,12 @@ type
 
   TTestCase = class(TObject)
   public
-    procedure setUp;
-    procedure tearDown;
-    procedure assertTrue(Value: Boolean);
-    procedure assertFalse(Value: Boolean);
-    procedure assertEquals(Value1, Value2: Integer); overload;
-    procedure assertEquals(Value1, Value2: String); overload;
+    procedure SetUp;
+    procedure TearDown;
+    procedure AssertTrue(Value: Boolean);
+    procedure AssertFalse(Value: Boolean);
+    procedure AssertEquals(Value1, Value2: Integer); overload;
+    procedure AssertEquals(Value1, Value2: String); overload;
   end;
 
   TTestCaseClass = class of TTestCase;
@@ -46,8 +47,8 @@ type
     procedure RunTests;
   end;
 
-procedure runTest;
-procedure registerTest;
+procedure RunTest;
+procedure RegisterTest;
 
 implementation
 
@@ -60,25 +61,25 @@ procedure TTestCase.tearDown;
 begin
 end;
 
-procedure TTestCase.assertTrue(Value: Boolean);
+procedure TTestCase.AssertTrue(Value: Boolean);
 begin
   if not (Value = True) then
     raise EAssertionError.Create(BoolToStr(Value, True) + ' != True')
 end;
 
-procedure TTestCase.assertFalse(Value: Boolean);
+procedure TTestCase.AssertFalse(Value: Boolean);
 begin
   if not (Value = False) then
     raise EAssertionError.Create(BoolToStr(Value, True) + ' != False')
 end;
 
-procedure TTestCase.assertEquals(Value1, Value2: Integer);
+procedure TTestCase.AssertEquals(Value1, Value2: Integer);
 begin
   if not (Value1 = Value2) then
     raise EAssertionError.Create(IntToStr(Value1) + ' != ' + IntToStr(Value2));
 end;
 
-procedure TTestCase.assertEquals(Value1, Value2: String);
+procedure TTestCase.AssertEquals(Value1, Value2: String);
 begin
   if not (Value1 = Value2) then
     raise EAssertionError.Create('"' + Value1 + '" != "' + Value2 + '"');
@@ -128,11 +129,11 @@ begin
     Run(TestCase);
 end;
 
-procedure runTest;
+procedure RunTest;
 begin
 end;
 
-procedure registerTest;
+procedure RegisterTest;
 begin
 end;
 
