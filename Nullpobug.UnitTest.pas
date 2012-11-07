@@ -19,6 +19,7 @@ type
     procedure AssertFalse(Value: Boolean);
     procedure AssertEquals(Value1, Value2: Integer); overload;
     procedure AssertEquals(Value1, Value2: String); overload;
+    procedure Run;
   end;
 
   TTestCaseClass = class of TTestCase;
@@ -28,11 +29,12 @@ type
   TTestResult = class(TObject)
   private
     FResultType: TTestResultType;
-    FError: EAssertionError;
+    FError: Exception;
   public
-    constructor Create(TestResultType: TTestResultType; Error: EAssertionError = nil);  // TODO: Error
+    constructor Create;
     destructor Destroy; override;
-    property ResultType: TTestResultType read FResultType;
+    property ResultType: TTestResultType read FResultType write FResultType;
+    property Error: Exception read FError write FError;
   end;
 
   TTestRunner = class(TObject)
@@ -43,12 +45,15 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure AddTestCase(TestCaseClass: TTestCaseClass);
-    procedure Run(TestCase: TTestCase);
+    function Run(TestCase: TTestCase): TTestResult;
     procedure RunTests;
   end;
 
 procedure RunTest;
-procedure RegisterTest;
+procedure RegisterTest(TestCaseClass: TTestCaseClass);
+
+var
+  TestRunner: TTestRunner;
 
 implementation
 
@@ -64,32 +69,36 @@ end;
 procedure TTestCase.AssertTrue(Value: Boolean);
 begin
   if not (Value = True) then
-    raise EAssertionError.Create(BoolToStr(Value, True) + ' != True')
+    raise EAssertionError.CreateFmt('%s != True', [BoolToStr(Value, True)])
 end;
 
 procedure TTestCase.AssertFalse(Value: Boolean);
 begin
   if not (Value = False) then
-    raise EAssertionError.Create(BoolToStr(Value, True) + ' != False')
+    raise EAssertionError.CreateFmt('%s != False', [BoolToStr(Value, True)])
 end;
 
 procedure TTestCase.AssertEquals(Value1, Value2: Integer);
 begin
   if not (Value1 = Value2) then
-    raise EAssertionError.Create(IntToStr(Value1) + ' != ' + IntToStr(Value2));
+    raise EAssertionError.CreateFmt('%d != %d', [Value1, Value2])
 end;
 
 procedure TTestCase.AssertEquals(Value1, Value2: String);
 begin
   if not (Value1 = Value2) then
-    raise EAssertionError.Create('"' + Value1 + '" != "' + Value2 + '"');
+    raise EAssertionError.CreateFmt('%s != %s', [Value1, Value2])
+end;
+
+procedure TTestCase.Run;
+begin
 end;
 
 { TestResult }
-constructor TTestResult.Create(TestResultType: TTestResultType; Error: EAssertionError = nil);
+constructor TTestResult.Create;
 begin
-  FResultType := TestResultType;
-  FError := Error;
+  FResultType := rtSkip;
+  FError := nil;
 end;
 
 destructor TTestResult.Destroy;
@@ -117,24 +126,52 @@ begin
   FTestCaseList.Add(TestCaseClass.Create);
 end;
 
-procedure TTestRunner.Run(TestCase: TTestCase);
+function TTestRunner.Run(TestCase: TTestCase): TTestResult;
 begin
+  Result := TTestResult.Create;
+  try
+    TestCase.Run;
+    Result.ResultType := rtOk;
+  except
+    on E: EAssertionError do
+    begin
+      Result.ResultType := rtFail;
+      Result.Error := E;
+    end;
+    on E: Exception do
+    begin
+      Result.ResultType := rtError;
+      Result.Error := E;
+    end;
+  end;
 end;
 
 procedure TTestRunner.RunTests;
 var
   TestCase: TTestCase;
+  TestResult: TTestResult;
 begin
   for TestCase in FTestCaseList do
-    Run(TestCase);
+  begin
+    TestResult := Run(TestCase);
+    FTestResultList.Add(TestResult);
+  end;
 end;
 
 procedure RunTest;
 begin
+  TestRunner.RunTests;
 end;
 
-procedure RegisterTest;
+procedure RegisterTest(TestCaseClass: TTestCaseClass);
 begin
+  TestRunner.AddTestCase(TestCaseClass);
 end;
+
+initialization
+  TestRunner := TTestRunner.Create;
+
+finalization
+  FreeAndNil(TestRunner);
 
 end.

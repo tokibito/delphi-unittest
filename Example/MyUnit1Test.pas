@@ -17,7 +17,10 @@ implementation
 
 procedure TMyUnit1Test.TestAdd;
 begin
-  assertEquals(Add(10, 20), 30);
+  AssertEquals(Add(10, 20), 30);
 end;
+
+initialization
+  RegisterTest(TMyUnit1Test);
 
 end.
