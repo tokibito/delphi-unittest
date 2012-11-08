@@ -1,2 +1,2 @@
-TestProject: TestProject.dpr
+all: TestProject.dpr
 	dcc32 -$M+ TestProject.dpr
