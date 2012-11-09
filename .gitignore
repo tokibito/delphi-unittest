@@ -1,4 +1,5 @@
 .hg/
 *.exe
 *.orig
+*.dcu
 Example/TestProject
