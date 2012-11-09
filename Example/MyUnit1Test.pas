@@ -4,6 +4,7 @@ interface
 
 uses
   Nullpobug.UnitTest
+  , System.SysUtils
   , MyUnit1
   ;
 
@@ -14,6 +15,7 @@ type
     procedure TestSub;
     procedure TestAddFail;
     procedure TestSkip;
+    procedure TestSlow;
   end;
 
 implementation
@@ -37,6 +39,11 @@ end;
 procedure TMyUnit1Test.TestSkip;
 begin
   raise ESkipTest.Create('This is Skipped.');
+end;
+
+procedure TMyUnit1Test.TestSlow;
+begin
+  Sleep(500);
 end;
 
 initialization

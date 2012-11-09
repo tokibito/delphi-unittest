@@ -22,6 +22,7 @@ type
     FError: Exception;
     FTestMethodName: String;
     FTestCaseName: String;
+    FTime: Int64;
   public
     constructor Create;
     destructor Destroy; override;
@@ -29,6 +30,7 @@ type
     property Error: Exception read FError write FError;
     property TestMethodName: String read FTestMethodName write FTestMethodName;
     property TestCaseName: String read FTestCaseName write FTestCaseName;
+    property Time: Int64 read FTime write FTime;
   end;
 
   TOnRanTestMethod = procedure(TestResult: TTestResult) of object;
@@ -68,6 +70,7 @@ type
   private
     FTestSuiteList: TObjectList<TTestSuite>;
     FTestResultList: TObjectList<TTestResult>;
+    FStopWatch: TStopWatch;
   public
     constructor Create;
     destructor Destroy; override;
@@ -75,6 +78,7 @@ type
     procedure Run(TestSuite: TTestSuite); virtual;
     procedure RunTests; virtual;
     property TestResultList: TObjectList<TTestResult> read FTestResultList;
+    property StopWatch: TStopWatch read FStopWatch;
   end;
 
   TTextTestRunner = class(TTestRunner)
@@ -101,6 +105,7 @@ constructor TTestResult.Create;
 begin
   FResultType := rtSkip;
   FError := nil;
+  FTime := 0;
 end;
 
 destructor TTestResult.Destroy;
@@ -158,7 +163,10 @@ var
   RttiType: TRttiType;
   Method: TRttiMethod;
   TestResult: TTestResult;
+  StopWatch: TStopWatch;
 begin
+  StopWatch := TStopWatch.Create;
+  StopWatch.Start;
   RttiContext := TRttiContext.Create;
   try
     RttiType := RttiContext.GetType(ClassType);
@@ -170,6 +178,7 @@ begin
         TestResult.ResultType := rtOk;
         TestResult.TestMethodName := Method.Name;
         TestResult.TestCaseName := ToString;
+        StopWatch.Reset;
         try
           Method.Invoke(Self, []);
         except
@@ -189,6 +198,7 @@ begin
             TestResult.Error := E;
           end;
         end;
+        TestResult.Time := StopWatch.ElapsedMilliseconds;
         if Assigned(FOnRanTestMethod) then
           FOnRanTestMethod(TestResult);
         TestResultList.Add(TestResult);
@@ -196,6 +206,7 @@ begin
     end;
   finally
     RttiContext.Free;
+    FreeAndNil(StopWatch);
   end;
 end;
 
@@ -237,10 +248,13 @@ constructor TTestRunner.Create;
 begin
   FTestSuiteList := TObjectList<TTestSuite>.Create;
   FTestResultList := TObjectList<TTestResult>.Create;
+  FStopWatch := TStopWatch.Create;
+  FStopWatch.Start;
 end;
 
 destructor TTestRunner.Destroy;
 begin
+  FreeAndNil(FStopWatch);
   FreeAndNil(FTestSuiteList);
   FreeAndNil(FTestResultList);
   inherited Destroy;
@@ -290,10 +304,13 @@ begin
 end;
 
 procedure TTextTestRunner.WriteFooter;
+var
+  Seconds: Single;
 begin
+  Seconds := StopWatch.ElapsedMilliseconds / 1000;
   WriteLn('');
   WriteLn(DupeString('-', 70));
-  WriteLn(Format('Ran %d tests in 0.000s', [TestResultList.Count]));
+  WriteLn(Format('Ran %d tests in %.3fs', [TestResultList.Count, Seconds]));
   WriteLn('');
   WriteLn('OK');
 end;
