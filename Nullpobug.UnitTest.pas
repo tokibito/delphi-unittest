@@ -7,6 +7,7 @@ uses
   , System.StrUtils
   , System.Generics.Collections
   , System.Rtti
+  , System.Diagnostics
   ;
 
 type
@@ -94,6 +95,19 @@ var
   DefaultTestSuite: TTestSuite;
 
 implementation
+
+{ TestResult }
+constructor TTestResult.Create;
+begin
+  FResultType := rtSkip;
+  FError := nil;
+end;
+
+destructor TTestResult.Destroy;
+begin
+  FError := nil;
+  inherited Destroy;
+end;
 
 { TestCase }
 constructor TTestCase.Create;
@@ -183,19 +197,6 @@ begin
   finally
     RttiContext.Free;
   end;
-end;
-
-{ TestResult }
-constructor TTestResult.Create;
-begin
-  FResultType := rtSkip;
-  FError := nil;
-end;
-
-destructor TTestResult.Destroy;
-begin
-  FError := nil;
-  inherited Destroy;
 end;
 
 { TestSuite }
