@@ -50,15 +50,28 @@ type
 
   TTestCaseClass = class of TTestCase;
 
-  TTestRunner = class(TObject)
+  TTestSuite = class(TObject)
   private
     FTestCaseList: TObjectList<TTestCase>;
-    FTestResultList: TObjectList<TTestResult>;
+    FOnRanTestMethod: TOnRanTestMethod;
   public
     constructor Create;
     destructor Destroy; override;
     procedure AddTestCase(TestCaseClass: TTestCaseClass);
-    procedure Run(TestCase: TTestCase); virtual;
+    procedure Run(TestCase: TTestCase; TestResultList: TObjectList<TTestResult>); virtual;
+    procedure RunTests(TestResultList: TObjectList<TTestResult>); virtual;
+    property OnRanTestMethod: TOnRanTestMethod read FOnRanTestMethod write FOnRanTestMethod;
+  end;
+
+  TTestRunner = class(TObject)
+  private
+    FTestSuiteList: TObjectList<TTestSuite>;
+    FTestResultList: TObjectList<TTestResult>;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddTestSuite(TestSuite: TTestSuite);
+    procedure Run(TestSuite: TTestSuite); virtual;
     procedure RunTests; virtual;
     property TestResultList: TObjectList<TTestResult> read FTestResultList;
   end;
@@ -68,15 +81,17 @@ type
     procedure WriteHeader;
     procedure WriteTestResult(TestResult: TTestResult);
     procedure WriteFooter;
-    procedure Run(TestCase: TTestCase); override;
+    procedure Run(TestSuite: TTestSuite); override;
     procedure RunTests; override;
   end;
 
 procedure RunTest;
-procedure RegisterTest(TestCaseClass: TTestCaseClass);
+procedure RegisterTest(TestCaseClass: TTestCaseClass); overload;
+procedure RegisterTest(TestSuite: TTestSuite); overload;
 
 var
   TestRunner: TTestRunner;
+  DefaultTestSuite: TTestSuite;
 
 implementation
 
@@ -183,36 +198,69 @@ begin
   inherited Destroy;
 end;
 
+{ TestSuite }
+constructor TTestSuite.Create;
+begin
+  FOnRanTestMethod := nil;
+  FTestCaseList := TObjectList<TTestCase>.Create;
+end;
+
+destructor TTestSuite.Destroy;
+begin
+  FOnRanTestMethod := nil;
+  FreeAndNil(FTestCaseList);
+end;
+
+procedure TTestSuite.AddTestCase(TestCaseClass: TTestCaseClass);
+begin
+  FTestCaseList.Add(TestCaseClass.Create);
+end;
+
+procedure TTestSuite.Run(TestCase: TTestCase; TestResultList: TObjectList<TTestResult>);
+begin
+  TestCase.OnRanTestMethod := FOnRanTestMethod;
+  TestCase.Run(TestResultList);
+  TestCase.OnRanTestMethod := nil;
+end;
+
+procedure TTestSuite.RunTests(TestResultList: TObjectList<TTestResult>);
+var
+  TestCase: TTestCase;
+begin
+  for TestCase in FTestCaseList do
+    Run(TestCase, TestResultList);
+end;
+
 { TestRunner }
 constructor TTestRunner.Create;
 begin
-  FTestCaseList := TObjectList<TTestCase>.Create;
+  FTestSuiteList := TObjectList<TTestSuite>.Create;
   FTestResultList := TObjectList<TTestResult>.Create;
 end;
 
 destructor TTestRunner.Destroy;
 begin
-  FreeAndNil(FTestCaseList);
+  FreeAndNil(FTestSuiteList);
   FreeAndNil(FTestResultList);
   inherited Destroy;
 end;
 
-procedure TTestRunner.AddTestCase(TestCaseClass: TTestCaseClass);
+procedure TTestRunner.AddTestSuite(TestSuite: TTestSuite);
 begin
-  FTestCaseList.Add(TestCaseClass.Create);
+  FTestSuiteList.Add(TestSuite);
 end;
 
-procedure TTestRunner.Run(TestCase: TTestCase);
+procedure TTestRunner.Run(TestSuite: TTestSuite);
 begin
-  TestCase.Run(TestResultList);
+  TestSuite.RunTests(TestResultList);
 end;
 
 procedure TTestRunner.RunTests;
 var
-  TestCase: TTestCase;
+  TestSuite: TTestSuite;
 begin
-  for TestCase in FTestCaseList do
-    Run(TestCase);
+  for TestSuite in FTestSuiteList do
+    Run(TestSuite);
 end;
 
 { TTextTestRunner }
@@ -249,10 +297,10 @@ begin
   WriteLn('OK');
 end;
 
-procedure TTextTestRunner.Run(TestCase: TTestCase);
+procedure TTextTestRunner.Run(TestSuite: TTestSuite);
 begin
-  TestCase.OnRanTestMethod := WriteTestResult;
-  inherited Run(TestCase);
+  TestSuite.OnRanTestMethod := WriteTestResult;
+  inherited Run(TestSuite);
 end;
 
 procedure TTextTestRunner.RunTests;
@@ -268,13 +316,25 @@ end;
 
 procedure RegisterTest(TestCaseClass: TTestCaseClass);
 begin
-  TestRunner.AddTestCase(TestCaseClass);
+  if DefaultTestSuite = nil then
+  begin
+    DefaultTestSuite := TTestSuite.Create;
+    TestRunner.AddTestSuite(DefaultTestSuite);
+  end;
+  DefaultTestSuite.AddTestCase(TestCaseClass);
+end;
+
+procedure RegisterTest(TestSuite: TTestSuite);
+begin
+  TestRunner.AddTestSuite(TestSuite);
 end;
 
 initialization
   TestRunner := TTextTestRunner.Create;
+  DefaultTestSuite := nil;
 
 finalization
+  DefaultTestSuite := nil;
   FreeAndNil(TestRunner);
 
 end.
