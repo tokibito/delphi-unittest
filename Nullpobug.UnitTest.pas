@@ -19,7 +19,8 @@ type
   TTestResult = class(TObject)
   private
     FResultType: TTestResultType;
-    FError: Exception;
+    FErrorClassName: String;
+    FErrorMessage: String;
     FTestMethodName: String;
     FTestCaseName: String;
     FTime: Int64;
@@ -27,7 +28,8 @@ type
     constructor Create;
     destructor Destroy; override;
     property ResultType: TTestResultType read FResultType write FResultType;
-    property Error: Exception read FError write FError;
+    property ErrorClassName: String read FErrorClassName write FErrorClassName;
+    property ErrorMessage: String read FErrorMessage write FErrorMessage;
     property TestMethodName: String read FTestMethodName write FTestMethodName;
     property TestCaseName: String read FTestCaseName write FTestCaseName;
     property Time: Int64 read FTime write FTime;
@@ -94,6 +96,7 @@ type
   public
     procedure WriteHeader;
     procedure WriteTestResult(TestResult: TTestResult);
+    procedure WriteTestResultDetail(TestResult: TTestResult);
     procedure WriteFooter;
     procedure Run(TestSuite: TTestSuite); override;
     procedure RunTests; override;
@@ -113,13 +116,11 @@ implementation
 constructor TTestResult.Create;
 begin
   FResultType := rtSkip;
-  FError := nil;
   FTime := 0;
 end;
 
 destructor TTestResult.Destroy;
 begin
-  FError := nil;
   inherited Destroy;
 end;
 
@@ -196,17 +197,20 @@ begin
             on E: EAssertionError do
             begin
               TestResult.ResultType := rtFail;
-              TestResult.Error := E;
+              TestResult.ErrorClassName := E.ClassName;
+              TestResult.ErrorMessage := E.Message;
             end;
             on E: ESkipTest do
             begin
               TestResult.ResultType := rtSkip;
-              TestResult.Error := E;
+              TestResult.ErrorClassName := E.ClassName;
+              TestResult.ErrorMessage := E.Message;
             end;
             on E: Exception do
             begin
               TestResult.ResultType := rtError;
-              TestResult.Error := E;
+              TestResult.ErrorClassName := E.ClassName;
+              TestResult.ErrorMessage := E.Message;
             end;
           end;
         finally
@@ -371,12 +375,32 @@ begin
   Write(ResultMark);
 end;
 
+procedure TTextTestRunner.WriteTestResultDetail(TestResult: TTestResult);
+var
+  ResultTypeString: String;
+begin
+  WriteLn(DupeString('=', 70));
+  case TestResult.ResultType of
+    rtFail: ResultTypeString := 'FAIL';
+    rtError: ResultTypeString := 'ERROR';
+  end;
+  WriteLn(Format('%s: %s (%s)', [ResultTypeString, TestResult.TestMethodName, TestResult.TestCaseName]));
+  WriteLn(DupeString('-', 70));
+  WriteLn(Format('%s: %s', [TestResult.ErrorClassName, TestResult.ErrorMessage]));
+  WriteLn('');
+end;
+
 procedure TTextTestRunner.WriteFooter;
 var
   Seconds: Single;
+  TestResult: TTestResult;
 begin
   Seconds := StopWatch.ElapsedMilliseconds / 1000;
   WriteLn('');
+  // Display Error details
+  for TestResult in FTestResultList do
+    if TestResult.ResultType in [rtFail, rtError] then
+      WriteTestResultDetail(TestResult);
   WriteLn(DupeString('-', 70));
   WriteLn(Format('Ran %d tests in %.3fs', [TestResultList.Count, Seconds]));
   WriteLn('');
