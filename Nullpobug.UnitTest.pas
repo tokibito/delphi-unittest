@@ -71,6 +71,10 @@ type
     FTestSuiteList: TObjectList<TTestSuite>;
     FTestResultList: TObjectList<TTestResult>;
     FStopWatch: TStopWatch;
+    function GetResultCount(ResultType: TTestResultType): Integer;
+    function GetFailureCount: Integer;
+    function GetErrorCount: Integer;
+    function GetSkipCount: Integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -79,9 +83,14 @@ type
     procedure RunTests; virtual;
     property TestResultList: TObjectList<TTestResult> read FTestResultList;
     property StopWatch: TStopWatch read FStopWatch;
+    property FailureCount: Integer read GetFailureCount;
+    property ErrorCount: Integer read GetErrorCount;
+    property SkipCount: Integer read GetSkipCount;
   end;
 
   TTextTestRunner = class(TTestRunner)
+  private
+    function GetReusltMessage: String;
   public
     procedure WriteHeader;
     procedure WriteTestResult(TestResult: TTestResult);
@@ -283,7 +292,66 @@ begin
     Run(TestSuite);
 end;
 
+function TTestRunner.GetResultCount(ResultType: TTestResultType): Integer;
+var
+  TestResult: TTestResult;
+begin
+  Result := 0;
+  for TestResult in FTestResultList do
+    if TestResult.ResultType = ResultType then
+      Inc(Result);
+end;
+
+function TTestRunner.GetFailureCount: Integer;
+begin
+  Result := GetResultCount(rtFail);
+end;
+
+function TTestRunner.GetErrorCount: Integer;
+begin
+  Result := GetResultCount(rtError);
+end;
+
+function TTestRunner.GetSkipCount: Integer;
+begin
+  Result := GetResultCount(rtSkip);
+end;
+
 { TTextTestRunner }
+function TTextTestRunner.GetReusltMessage: String;
+var
+  DetailMessageParts: TList<String>;
+  DetailMessagePart, DetailMessage: String;
+begin
+  if (FailureCount = 0) and (ErrorCount = 0) then
+    Result := 'OK'
+  else
+    Result := 'FAILED';
+  DetailMessageParts := TList<String>.Create;
+  try
+    if FailureCount > 0 then
+      DetailMessageParts.Add(Format('failures=%d', [FailureCount]));
+    if ErrorCount > 0 then
+      DetailMessageParts.Add(Format('errors=%d', [ErrorCount]));
+    if SkipCount > 0 then
+      DetailMessageParts.Add(Format('skipped=%d', [SkipCount]));
+    if DetailMessageParts.Count > 0 then
+    begin
+      DetailMessage := '';
+      for DetailMessagePart in DetailMessageParts do
+      begin
+        if DetailMessage <> '' then
+          DetailMessage := DetailMessage + ', ' + DetailMessagePart
+        else
+          DetailMessage := DetailMessagePart;
+      end;
+      Result := Result + Format(' (%s)', [DetailMessage]);
+    end;
+  finally
+    FreeAndNil(DetailMessageParts);
+  end;
+end;
+
 procedure TTextTestRunner.WriteHeader;
 begin
 end;
@@ -312,7 +380,7 @@ begin
   WriteLn(DupeString('-', 70));
   WriteLn(Format('Ran %d tests in %.3fs', [TestResultList.Count, Seconds]));
   WriteLn('');
-  WriteLn('OK');
+  WriteLn(GetReusltMessage);
 end;
 
 procedure TTextTestRunner.Run(TestSuite: TTestSuite);
@@ -323,6 +391,7 @@ end;
 
 procedure TTextTestRunner.RunTests;
 begin
+  WriteHeader;
   inherited RunTests;
   WriteFooter;
 end;
