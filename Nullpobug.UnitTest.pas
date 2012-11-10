@@ -180,23 +180,28 @@ begin
         TestResult.TestCaseName := ToString;
         StopWatch.Reset;
         try
-          Method.Invoke(Self, []);
-        except
-          on E: EAssertionError do
-          begin
-            TestResult.ResultType := rtFail;
-            TestResult.Error := E;
+          try
+            SetUp;
+            Method.Invoke(Self, []);
+          except
+            on E: EAssertionError do
+            begin
+              TestResult.ResultType := rtFail;
+              TestResult.Error := E;
+            end;
+            on E: ESkipTest do
+            begin
+              TestResult.ResultType := rtSkip;
+              TestResult.Error := E;
+            end;
+            on E: Exception do
+            begin
+              TestResult.ResultType := rtError;
+              TestResult.Error := E;
+            end;
           end;
-          on E: ESkipTest do
-          begin
-            TestResult.ResultType := rtSkip;
-            TestResult.Error := E;
-          end;
-          on E: Exception do
-          begin
-            TestResult.ResultType := rtError;
-            TestResult.Error := E;
-          end;
+        finally
+          TearDown;
         end;
         TestResult.Time := StopWatch.ElapsedMilliseconds;
         if Assigned(FOnRanTestMethod) then
