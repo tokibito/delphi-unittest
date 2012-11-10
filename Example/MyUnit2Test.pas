@@ -15,6 +15,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     procedure TestGetName;
+    procedure TestIsNil;
   end;
 
 implementation
@@ -32,6 +33,11 @@ end;
 procedure TMyUnit2Test.TestGetName;
 begin
   AssertEquals(FPerson.GetName, 'Foo');
+end;
+
+procedure TMyUnit2Test.TestIsNil;
+begin
+  AssertIsNil(nil);
 end;
 
 initialization

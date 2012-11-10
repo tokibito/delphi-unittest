@@ -50,6 +50,8 @@ type
     procedure AssertFalse(Value: Boolean);
     procedure AssertEquals(Value1, Value2: Integer); overload;
     procedure AssertEquals(Value1, Value2: String); overload;
+    procedure AssertIsNil(Value: TObject);
+    procedure AssertIsNotNil(Value: TObject);
     procedure Run(TestResultList: TObjectList<TTestResult>);
     property OnRanTestMethod: TOnRanTestMethod read FOnRanTestMethod write FOnRanTestMethod;
   end;
@@ -173,6 +175,18 @@ procedure TTestCase.AssertEquals(Value1, Value2: String);
 begin
   if not (Value1 = Value2) then
     raise EAssertionError.CreateFmt('%s != %s', [Value1, Value2]);
+end;
+
+procedure TTestCase.AssertIsNil(Value: TObject);
+begin
+  if not (Value = nil) then
+    raise EAssertionError.CreateFmt('%s is not nil.', [Value.ToString]);
+end;
+
+procedure TTestCase.AssertIsNotNil(Value: TObject);
+begin
+  if Value = nil then
+    raise EAssertionError.CreateFmt('%s is nil.', [Value.ToString]);
 end;
 
 procedure TTestCase.Run(TestResultList: TObjectList<TTestResult>);
