@@ -27,6 +27,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure Update(ResultType: TTestResultType; ErrorClassName, ErrorMessage: String);
     property ResultType: TTestResultType read FResultType write FResultType;
     property ErrorClassName: String read FErrorClassName write FErrorClassName;
     property ErrorMessage: String read FErrorMessage write FErrorMessage;
@@ -124,6 +125,13 @@ begin
   inherited Destroy;
 end;
 
+procedure TTestResult.Update(ResultType: TTestResultType; ErrorClassName, ErrorMessage: String);
+begin
+  FResultType := ResultType;
+  FErrorClassName := ErrorClassName;
+  FErrorMessage := ErrorMessage;
+end;
+
 { TestCase }
 constructor TTestCase.Create;
 begin
@@ -195,23 +203,11 @@ begin
             Method.Invoke(Self, []);
           except
             on E: EAssertionError do
-            begin
-              TestResult.ResultType := rtFail;
-              TestResult.ErrorClassName := E.ClassName;
-              TestResult.ErrorMessage := E.Message;
-            end;
+              TestResult.Update(rtFail, E.ClassName, E.Message);
             on E: ESkipTest do
-            begin
-              TestResult.ResultType := rtSkip;
-              TestResult.ErrorClassName := E.ClassName;
-              TestResult.ErrorMessage := E.Message;
-            end;
+              TestResult.Update(rtSkip, E.ClassName, E.Message);
             on E: Exception do
-            begin
-              TestResult.ResultType := rtError;
-              TestResult.ErrorClassName := E.ClassName;
-              TestResult.ErrorMessage := E.Message;
-            end;
+              TestResult.Update(rtError, E.ClassName, E.Message);
           end;
         finally
           TearDown;
