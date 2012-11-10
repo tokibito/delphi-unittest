@@ -292,19 +292,14 @@ procedure TTextTestRunner.WriteTestResult(TestResult: TTestResult);
 var
   ResultMark: String;
 begin
-  if TestResult.ResultType = rtOK then
-    ResultMark := '.'
+  case TestResult.ResultType of
+    rtOK: ResultMark := '.';
+    rtFail: ResultMark := 'F';
+    rtError: ResultMark := 'E';
+    rtSkip: ResultMark := 'S';
   else
-    if TestResult.ResultType = rtFail then
-      ResultMark := 'F'
-    else
-      if TestResult.ResultType = rtError then
-        ResultMark := 'E'
-      else
-        if TestResult.ResultType = rtSkip then
-          ResultMark := 'S'
-        else
-          ResultMark := '?';
+    ResultMark := '?';
+  end;
   Write(ResultMark);
 end;
 
