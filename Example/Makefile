@@ -12,3 +12,4 @@ nofail: TestProject.dpr
 clean:
 	del TestProject
 	del TestProject.exe
+	del ..\Nullpobug.Unittest.dcu
