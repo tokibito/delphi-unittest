@@ -13,7 +13,9 @@ type
   published
     procedure TestAdd;
     procedure TestSub;
+    {$IFNDEF NOFAIL}
     procedure TestAddFail;
+    {$ENDIF}
     procedure TestSkip;
     procedure TestSlow;
   end;
@@ -30,11 +32,13 @@ begin
   AssertEquals(Sub(40, 20), 20);
 end;
 
+{$IFNDEF NOFAIL}
 procedure TMyUnit1Test.TestAddFail;
 begin
   // Fail Test
   AssertEquals(Add(10, 20), 40);
 end;
+{$ENDIF}
 
 procedure TMyUnit1Test.TestSkip;
 begin

@@ -6,6 +6,9 @@ win32: TestProject.dpr
 osx: TestProject.dpr
 	dccosx -$M+ TestProject.dpr
 
+nofail: TestProject.dpr
+	dcc32 -DNOFAIL -$M+ TestProject.dpr
+
 clean:
 	del TestProject
 	del TestProject.exe
