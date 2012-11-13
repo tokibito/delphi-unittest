@@ -86,6 +86,7 @@ type
     procedure AddTestSuite(TestSuite: TTestSuite);
     procedure Run(TestSuite: TTestSuite); virtual;
     procedure RunTests; virtual;
+    procedure SaveToXML(FileName: String);
     property TestResultList: TObjectList<TTestResult> read FTestResultList;
     property StopWatch: TStopWatch read FStopWatch;
     property FailureCount: Integer read GetFailureCount;
@@ -105,7 +106,7 @@ type
     procedure RunTests; override;
   end;
 
-procedure RunTest;
+procedure RunTest(OutputXMLFileName: String = '');
 procedure RegisterTest(TestCaseClass: TTestCaseClass); overload;
 procedure RegisterTest(TestSuite: TTestSuite); overload;
 
@@ -198,7 +199,6 @@ var
   StopWatch: TStopWatch;
 begin
   StopWatch := TStopWatch.Create;
-  StopWatch.Start;
   RttiContext := TRttiContext.Create;
   try
     RttiType := RttiContext.GetType(ClassType);
@@ -211,6 +211,7 @@ begin
         TestResult.TestMethodName := Method.Name;
         TestResult.TestCaseName := ToString;
         StopWatch.Reset;
+        StopWatch.Start;
         try
           try
             SetUp;
@@ -304,6 +305,54 @@ var
 begin
   for TestSuite in FTestSuiteList do
     Run(TestSuite);
+end;
+
+procedure TTestRunner.SaveToXML(FileName: String);
+var
+  Seconds: Single;
+  OutputFile: Text;
+  TestResult: TTestResult;
+begin
+  AssignFile(OutputFile, FileName);
+  Rewrite(OutputFile);
+  try
+    (* header *)
+    WriteLn(OutputFile, '<?xml version="1.0" encoding="UTF-8"?>');
+    WriteLn(OutputFile,
+        Format('<testsuite name="%s" tests="%d" errors="%d" failures="%d" skip="%d">',
+               ['default', TestResultList.Count, ErrorCount, FailureCount, SkipCount]));
+    for TestResult in TestResultList do
+    begin
+      Seconds := TestResult.Time / 1000;
+      case TestResult.ResultType of
+        rtOK:
+          Writeln(OutputFile,
+              Format('<testcase classname="%s" name="%s" time="%.3f"/>',
+                     [TestResult.TestCaseName, TestResult.TestMethodName, Seconds]));
+        rtSkip:
+        begin
+          Writeln(OutputFile,
+              Format('<testcase classname="%s" name="%s" time="%.3f">',
+                     [TestResult.TestCaseName, TestResult.TestMethodName, Seconds]));
+          Writeln(OutputFile, '<skipped/>');
+          Writeln(OutputFile, '</testcase>');
+        end;
+      else
+        begin
+          Writeln(OutputFile,
+              Format('<testcase classname="%s" name="%s" time="%.3f">',
+                     [TestResult.TestCaseName, TestResult.TestMethodName, Seconds]));
+          Writeln(OutputFile,
+              Format('<failure type="%s">%s</failure>',
+                     [TestResult.ErrorClassName, TestResult.ErrorMessage]));
+          Writeln(OutputFile, '</testcase>');
+        end;
+      end;
+    end;
+    WriteLn(OutputFile, '</testsuite>');
+  finally
+    CloseFile(OutputFile);
+  end;
 end;
 
 function TTestRunner.GetResultCount(ResultType: TTestResultType): Integer;
@@ -407,7 +456,7 @@ var
 begin
   Seconds := StopWatch.ElapsedMilliseconds / 1000;
   WriteLn('');
-  // Display Error details
+  (* Display Error details *)
   for TestResult in FTestResultList do
     if TestResult.ResultType in [rtFail, rtError] then
       WriteTestResultDetail(TestResult);
@@ -430,9 +479,11 @@ begin
   WriteFooter;
 end;
 
-procedure RunTest;
+procedure RunTest(OutputXMLFileName: String = '');
 begin
   TestRunner.RunTests;
+  if OutputXMLFileName <> '' then
+    TestRunner.SaveToXML(OutputXMLFileName);
 end;
 
 procedure RegisterTest(TestCaseClass: TTestCaseClass);

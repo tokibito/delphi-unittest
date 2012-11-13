@@ -5,3 +5,4 @@ syntax: glob
 
 syntax: regexp
 Example\/TestProject$
+Example\/TestProject\.xml$
