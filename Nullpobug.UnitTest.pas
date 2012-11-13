@@ -316,9 +316,8 @@ begin
   AssignFile(OutputFile, FileName);
   Rewrite(OutputFile);
   try
-    (* header *)
-    WriteLn(OutputFile, '<?xml version="1.0" encoding="UTF-8"?>');
-    WriteLn(OutputFile,
+    Writeln(OutputFile, '<?xml version="1.0" encoding="UTF-8"?>');
+    Writeln(OutputFile,
         Format('<testsuite name="%s" tests="%d" errors="%d" failures="%d" skip="%d">',
                ['default', TestResultList.Count, ErrorCount, FailureCount, SkipCount]));
     for TestResult in TestResultList do
@@ -349,7 +348,7 @@ begin
         end;
       end;
     end;
-    WriteLn(OutputFile, '</testsuite>');
+    Writeln(OutputFile, '</testsuite>');
   finally
     CloseFile(OutputFile);
   end;
@@ -438,15 +437,15 @@ procedure TTextTestRunner.WriteTestResultDetail(TestResult: TTestResult);
 var
   ResultTypeString: String;
 begin
-  WriteLn(DupeString('=', 70));
+  Writeln(DupeString('=', 70));
   case TestResult.ResultType of
     rtFail: ResultTypeString := 'FAIL';
     rtError: ResultTypeString := 'ERROR';
   end;
-  WriteLn(Format('%s: %s (%s)', [ResultTypeString, TestResult.TestMethodName, TestResult.TestCaseName]));
-  WriteLn(DupeString('-', 70));
-  WriteLn(Format('%s: %s', [TestResult.ErrorClassName, TestResult.ErrorMessage]));
-  WriteLn('');
+  Writeln(Format('%s: %s (%s)', [ResultTypeString, TestResult.TestMethodName, TestResult.TestCaseName]));
+  Writeln(DupeString('-', 70));
+  Writeln(Format('%s: %s', [TestResult.ErrorClassName, TestResult.ErrorMessage]));
+  Writeln('');
 end;
 
 procedure TTextTestRunner.WriteFooter;
@@ -455,15 +454,15 @@ var
   TestResult: TTestResult;
 begin
   Seconds := StopWatch.ElapsedMilliseconds / 1000;
-  WriteLn('');
+  Writeln('');
   (* Display Error details *)
   for TestResult in FTestResultList do
     if TestResult.ResultType in [rtFail, rtError] then
       WriteTestResultDetail(TestResult);
-  WriteLn(DupeString('-', 70));
-  WriteLn(Format('Ran %d tests in %.3fs', [TestResultList.Count, Seconds]));
-  WriteLn('');
-  WriteLn(GetReusltMessage);
+  Writeln(DupeString('-', 70));
+  Writeln(Format('Ran %d tests in %.3fs', [TestResultList.Count, Seconds]));
+  Writeln('');
+  Writeln(GetReusltMessage);
 end;
 
 procedure TTextTestRunner.Run(TestSuite: TTestSuite);
