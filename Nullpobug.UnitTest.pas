@@ -87,6 +87,7 @@ type
     procedure Run(TestSuite: TTestSuite); virtual;
     procedure RunTests; virtual;
     procedure SaveToXML(FileName: String);
+    function IsAllGreen: Boolean;
     property TestResultList: TObjectList<TTestResult> read FTestResultList;
     property StopWatch: TStopWatch read FStopWatch;
     property FailureCount: Integer read GetFailureCount;
@@ -354,6 +355,11 @@ begin
   end;
 end;
 
+function TTestRunner.IsAllGreen: Boolean;
+begin
+  Result := (FailureCount = 0) and (ErrorCount = 0);
+end;
+
 function TTestRunner.GetResultCount(ResultType: TTestResultType): Integer;
 var
   TestResult: TTestResult;
@@ -385,7 +391,7 @@ var
   DetailMessageParts: TList<String>;
   DetailMessagePart, DetailMessage: String;
 begin
-  if (FailureCount = 0) and (ErrorCount = 0) then
+  if IsAllGreen then
     Result := 'OK'
   else
     Result := 'FAILED';
@@ -506,6 +512,8 @@ initialization
 
 finalization
   DefaultTestSuite := nil;
+  if not TestRunner.IsAllGreen then
+    ExitCode := 1;
   FreeAndNil(TestRunner);
 
 end.

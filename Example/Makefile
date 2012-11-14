@@ -9,6 +9,9 @@ osx: TestProject.dpr
 nofail: TestProject.dpr
 	dcc32 -DNOFAIL -$M+ TestProject.dpr
 
+test: all
+	TestProject.exe
+
 clean:
 	del TestProject
 	del TestProject.exe
