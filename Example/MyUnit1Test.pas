@@ -20,6 +20,7 @@ type
     procedure TestSlow;
     procedure TestAdd64;
     procedure TestJoinString;
+    procedure TestRaiseException;
   end;
 
 implementation
@@ -60,6 +61,16 @@ end;
 procedure TMyUnit1Test.TestJoinString;
 begin
   AssertEquals(JoinString('foo', 'bar'), 'foobar');
+end;
+
+procedure TMyUnit1Test.TestRaiseException;
+begin
+  AssertRaises(TMyException1,
+    procedure
+    begin
+      RaiseException;
+    end
+  );
 end;
 
 initialization

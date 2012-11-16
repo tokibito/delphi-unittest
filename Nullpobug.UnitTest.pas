@@ -37,6 +37,8 @@ type
   end;
 
   TOnRanTestMethod = procedure(TestResult: TTestResult) of object;
+  TTestProc = reference to procedure;
+  TExceptionClass = class of Exception;
 
   TTestCase = class(TObject)
   private
@@ -58,6 +60,7 @@ type
     procedure AssertEquals(Value1, Value2: RawByteString); overload; virtual;
     procedure AssertIsNil(Value: TObject); virtual;
     procedure AssertIsNotNil(Value: TObject); virtual;
+    procedure AssertRaises(ExceptionClass: TExceptionClass; Proc: TTestProc); overload; virtual;
     procedure Run(TestResultList: TObjectList<TTestResult>); virtual;
     property OnRanTestMethod: TOnRanTestMethod read FOnRanTestMethod write FOnRanTestMethod;
   end;
@@ -230,6 +233,26 @@ procedure TTestCase.AssertIsNotNil(Value: TObject);
 begin
   if Value = nil then
     raise EAssertionError.CreateFmt('%s is nil.', [Value.ToString]);
+end;
+
+procedure TTestCase.AssertRaises(ExceptionClass: TExceptionClass; Proc: TTestProc);
+var
+  Raised: Boolean;
+begin
+  Raised := False;
+  try
+    Proc;
+  except
+    on E: Exception do
+    begin
+      if not Assigned(ExceptionClass) then
+          raise
+        else if E.ClassType.InheritsFrom(ExceptionClass) then
+          Raised := True;
+    end;
+  end;
+  if not Raised then
+    raise EAssertionError.CreateFmt('%s is not raised.', [ExceptionClass.ClassName]);
 end;
 
 procedure TTestCase.Run(TestResultList: TObjectList<TTestResult>);
