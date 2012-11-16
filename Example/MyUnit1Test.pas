@@ -18,6 +18,8 @@ type
     {$ENDIF}
     procedure TestSkip;
     procedure TestSlow;
+    procedure TestAdd64;
+    procedure TestJoinString;
   end;
 
 implementation
@@ -48,6 +50,16 @@ end;
 procedure TMyUnit1Test.TestSlow;
 begin
   Sleep(500);
+end;
+
+procedure TMyUnit1Test.TestAdd64;
+begin
+  AssertEquals(Add64(999999999999, 1), 1000000000000);
+end;
+
+procedure TMyUnit1Test.TestJoinString;
+begin
+  AssertEquals(JoinString('foo', 'bar'), 'foobar');
 end;
 
 initialization

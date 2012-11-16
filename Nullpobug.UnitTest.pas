@@ -46,13 +46,19 @@ type
     destructor Destroy; override;
     procedure SetUp; virtual;
     procedure TearDown; virtual;
-    procedure AssertTrue(Value: Boolean);
-    procedure AssertFalse(Value: Boolean);
-    procedure AssertEquals(Value1, Value2: Integer); overload;
-    procedure AssertEquals(Value1, Value2: String); overload;
-    procedure AssertIsNil(Value: TObject);
-    procedure AssertIsNotNil(Value: TObject);
-    procedure Run(TestResultList: TObjectList<TTestResult>);
+    procedure Assert(Value: Boolean); virtual;
+    procedure AssertTrue(Value: Boolean); virtual;
+    procedure AssertFalse(Value: Boolean); virtual;
+    procedure AssertEquals(Value1, Value2: Integer); overload; virtual;
+    procedure AssertEquals(Value1, Value2: Cardinal); overload; virtual;
+    procedure AssertEquals(Value1, Value2: Int64); overload; virtual;
+    procedure AssertEquals(Value1, Value2: UInt64); overload; virtual;
+    procedure AssertEquals(Value1, Value2: ShortString); overload; virtual;
+    procedure AssertEquals(Value1, Value2: String); overload; virtual;
+    procedure AssertEquals(Value1, Value2: RawByteString); overload; virtual;
+    procedure AssertIsNil(Value: TObject); virtual;
+    procedure AssertIsNotNil(Value: TObject); virtual;
+    procedure Run(TestResultList: TObjectList<TTestResult>); virtual;
     property OnRanTestMethod: TOnRanTestMethod read FOnRanTestMethod write FOnRanTestMethod;
   end;
 
@@ -155,10 +161,15 @@ procedure TTestCase.TearDown;
 begin
 end;
 
-procedure TTestCase.AssertTrue(Value: Boolean);
+procedure TTestCase.Assert(Value: Boolean);
 begin
   if not (Value = True) then
     raise EAssertionError.CreateFmt('%s != True', [BoolToStr(Value, True)]);
+end;
+
+procedure TTestCase.AssertTrue(Value: Boolean);
+begin
+  Assert(Value);
 end;
 
 procedure TTestCase.AssertFalse(Value: Boolean);
@@ -173,7 +184,37 @@ begin
     raise EAssertionError.CreateFmt('%d != %d', [Value1, Value2]);
 end;
 
+procedure TTestCase.AssertEquals(Value1, Value2: Cardinal);
+begin
+  if not (Value1 = Value2) then
+    raise EAssertionError.CreateFmt('%d != %d', [Value1, Value2]);
+end;
+
+procedure TTestCase.AssertEquals(Value1, Value2: Int64);
+begin
+  if not (Value1 = Value2) then
+    raise EAssertionError.CreateFmt('%d != %d', [Value1, Value2]);
+end;
+
+procedure TTestCase.AssertEquals(Value1, Value2: UInt64);
+begin
+  if not (Value1 = Value2) then
+    raise EAssertionError.CreateFmt('%d != %d', [Value1, Value2]);
+end;
+
+procedure TTestCase.AssertEquals(Value1, Value2: ShortString);
+begin
+  if not (Value1 = Value2) then
+    raise EAssertionError.CreateFmt('%s != %s', [Value1, Value2]);
+end;
+
 procedure TTestCase.AssertEquals(Value1, Value2: String);
+begin
+  if not (Value1 = Value2) then
+    raise EAssertionError.CreateFmt('%s != %s', [Value1, Value2]);
+end;
+
+procedure TTestCase.AssertEquals(Value1, Value2: RawByteString);
 begin
   if not (Value1 = Value2) then
     raise EAssertionError.CreateFmt('%s != %s', [Value1, Value2]);
