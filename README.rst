@@ -1,7 +1,7 @@
 Nullpobug.Unittest
 ==================
 
-Yet another unittest.
+Yet another unittest. TestRunner will output the report of JUnit XML Format.
 
 ::
 
