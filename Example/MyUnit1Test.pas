@@ -21,6 +21,7 @@ type
     procedure TestAdd64;
     procedure TestJoinString;
     procedure TestRaiseException;
+    procedure testLowerCaseMethodName;
   end;
 
 implementation
@@ -71,6 +72,11 @@ begin
       RaiseException;
     end
   );
+end;
+
+procedure TMyUnit1Test.testLowerCaseMethodName;
+begin
+  AssertEquals(Add(10, 20), 30);
 end;
 
 initialization

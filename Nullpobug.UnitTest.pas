@@ -269,7 +269,7 @@ begin
     RttiType := RttiContext.GetType(ClassType);
     for Method in RttiType.GetMethods do
     begin
-      if LeftStr(Method.Name, 4) = 'Test' then
+      if LowerCase(LeftStr(Method.Name, 4)) = 'test' then
       begin
         TestResult := TTestResult.Create;
         TestResult.ResultType := rtOk;
