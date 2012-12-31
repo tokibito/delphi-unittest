@@ -23,3 +23,8 @@ Requires
 ========
 
 * Delphi XE3 (dcc32, dccosx command)
+
+License
+=======
+
+* MIT License
