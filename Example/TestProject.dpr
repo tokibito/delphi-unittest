@@ -9,5 +9,6 @@ uses
   ;
 
 begin
+  ReportMemoryLeaksOnShutdown := True;
   Nullpobug.UnitTest.RunTest('TestProject.xml');
 end.
