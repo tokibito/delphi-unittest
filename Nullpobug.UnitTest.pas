@@ -129,13 +129,14 @@ implementation
 { TestResult }
 constructor TTestResult.Create;
 begin
+  inherited;
   FResultType := rtSkip;
   FTime := 0;
 end;
 
 destructor TTestResult.Destroy;
 begin
-  inherited Destroy;
+  inherited;
 end;
 
 procedure TTestResult.Update(ResultType: TTestResultType; ErrorClassName, ErrorMessage: String);
@@ -148,12 +149,14 @@ end;
 { TestCase }
 constructor TTestCase.Create;
 begin
+  inherited;
   FOnRanTestMethod := nil;
 end;
 
 destructor TTestCase.Destroy;
 begin
   FOnRanTestMethod := nil;
+  inherited;
 end;
 
 procedure TTestCase.SetUp;
@@ -307,6 +310,7 @@ end;
 { TestSuite }
 constructor TTestSuite.Create;
 begin
+  inherited;
   FOnRanTestMethod := nil;
   FTestCaseList := TObjectList<TTestCase>.Create;
 end;
@@ -315,6 +319,7 @@ destructor TTestSuite.Destroy;
 begin
   FOnRanTestMethod := nil;
   FreeAndNil(FTestCaseList);
+  inherited;
 end;
 
 procedure TTestSuite.AddTestCase(TestCaseClass: TTestCaseClass);
@@ -340,6 +345,7 @@ end;
 { TestRunner }
 constructor TTestRunner.Create;
 begin
+  inherited;
   FTestSuiteList := TObjectList<TTestSuite>.Create;
   FTestResultList := TObjectList<TTestResult>.Create;
   FStopWatch := TStopWatch.Create;
@@ -351,7 +357,7 @@ begin
   FreeAndNil(FStopWatch);
   FreeAndNil(FTestSuiteList);
   FreeAndNil(FTestResultList);
-  inherited Destroy;
+  inherited;
 end;
 
 procedure TTestRunner.AddTestSuite(TestSuite: TTestSuite);
