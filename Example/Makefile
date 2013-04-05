@@ -15,4 +15,3 @@ test: all
 clean:
 	del TestProject
 	del TestProject.exe
-	del ..\Nullpobug.Unittest.dcu
